@@ -175,12 +175,16 @@ def run_module():
     elif method == 'POST':
         if route != 'add':
             module.fail_json(msg=f"Invalid route: {route} for post operation")
+        if input_json is  None :
+            module.fail_json(msg=f"input_json is required for create Product")
         body = validat_and_return_request_body(module, input_json)
         path = f'{path}/{route}'
     
     elif method == 'PUT':
         if product_id is None :
-               module.fail_json(msg=f"Missing 'id' parameter for the route 'update'")
+            module.fail_json(msg=f"Missing 'id' parameter for the route 'update'")
+        if input_json is  None :
+            module.fail_json(msg=f"input_json is required for Update Product")
         
         body = validat_and_return_request_body(module, input_json)
         path = f'{path}/{product_id}'    
