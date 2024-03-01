@@ -57,6 +57,12 @@
         json_data: '{"missing_title": "missing title", "price": 14, "discountPercentage": 8.04, "stock": 26, "brand": "School Items", "category": "groceries"}'
       ignore_errors: true 
 
+    - name: Create product record, missing  input_json
+      products_management:
+        method: 'POST'
+        route: 'add'
+      ignore_errors: true
+
     - name: Create product record, extra key
       products_management:
         method: 'POST'
