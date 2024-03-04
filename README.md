@@ -1,5 +1,13 @@
 # product-management
 
+
+### Run Ansible Playbook
+
+```bash
+ansible-playbook my-test.yaml
+```
+
+
 To run the ansible-playbook to test my module 
   ```bash
      ansible-playbook my-test.yaml
