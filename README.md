@@ -7,13 +7,9 @@
 ansible-playbook my-test.yaml
 ```
 
-
-To run the ansible-playbook to test my module 
-  ```bash
-     ansible-playbook my-test.yaml
-    ```
+### Run Ansible AdHoc command 
 
 To Test ansible module using addHoc command
-  ```bash
+```bash
      ANSIBLE_LIBRARY=./library ansible -m products_management -a 'method=GET id=23' localhost
-    ```  
+```  
