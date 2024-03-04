@@ -1,7 +1,8 @@
 # product-management
 
 ## Product Management Ansible Module 
-[Products API Docs ](https://dummyjson.com/docs/products)
+[Products API Docs ](https://dummyjson.com/docs/products).
+
 This product management module empowers you to:
 
         * Access products information: Easily retrieve data for all your products or obtain specific details for a single individual.
