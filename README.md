@@ -18,5 +18,5 @@ ansible-playbook my-test.yaml
 
 To Test ansible module using addHoc command
 ```bash
-ansible -m products_management -a 'method=GET id=23' localhost
+ansible localhost -m products_management -a 'method=GET id=23'
 ```  
