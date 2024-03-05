@@ -127,17 +127,6 @@ status:
     sample: 200
 '''
 
-BASE_URL = 'dummyjson.com'
-
-REQUIRED_KEYS = ['title', 'price',
-                 'discountPercentage', 'stock', 'brand', 'category']
-ALL_Keys = ['title', 'price', 'discountPercentage', 'stock',
-            'brand', 'category', 'thumbnail', 'description', 'images']
-ROUTS = ['add']
-
-path = '/products'
-HEADERS = {'Content-type': 'application/json', 'Accept': '*/*'}
-
 
 def get_module_spec():
     api_spec = dict(
@@ -175,6 +164,7 @@ def run_module():
     route = module.params['route']
     product_id = module.params['id']
     input_json = module.params['json_data']
+
     try:
         if method == 'GET' and product_id is None:
             get_products(result)

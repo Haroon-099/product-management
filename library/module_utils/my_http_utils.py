@@ -29,7 +29,7 @@ def send_http_request(method, path, body, result):
         conn.close()
     else:
         conn.close()
-        raise Exception(
+        raise ValidationException(
             f'The request fail with reson: {response.reason} and status : {response.status}')
 
 
@@ -55,14 +55,14 @@ def validat_request_body(body):
 def get_products(result):
     try:
         send_http_request('GET', path, None, result)
-    except Exception as e:
+    except ValidationException as e:
         raise e
 
 
 def get_product_by_id(id, result):
     try:
         send_http_request('GET', f'{path}/{id}', None, result)
-    except Exception as e:
+    except ValidationException as e:
         raise e
 
 
@@ -70,7 +70,7 @@ def create_product(route, json_body, result):
     try:
         validat_request_body(json_body)
         send_http_request('POST', f'{path}/{route}', json_body, result)
-    except Exception as e:
+    except ValidationException as e:
         raise e
 
 
@@ -78,14 +78,14 @@ def update_product(product_id, json_body, result):
     try:
         validat_request_body(json_body)
         send_http_request('PUT', f'{path}/{product_id}', json_body, result)
-    except Exception as e:
+    except ValidationException as e:
         raise e
 
 
 def delete_product_by_id(product_id, result):
     try:
         send_http_request('DELETE', f'{path}/{product_id}', None, result)
-    except Exception as e:
+    except ValidationException as e:
         raise e
 
 
