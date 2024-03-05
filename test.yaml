@@ -1,0 +1,107 @@
+---
+- name: test my new module
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: GET all products
+      products_management:
+        method: 'GET'
+      register: testout
+    - name: test all products output
+      debug:
+        msg: '{{ testout }}'
+
+    - name: GET single product
+      products_management:
+        method: 'GET'
+        id: 23
+      register: testout    
+    - name: test single product output
+      debug:
+        msg: '{{ testout }}'
+
+    - name: GET single product, wrong id
+      products_management:
+        method: 'GET'
+        id: 'WRONG_ID'
+      ignore_errors: true   
+
+    - name: GET single product, messing required parameter 
+      products_management:
+        id: 'WRONG_ID'
+      ignore_errors: true   
+
+    - name: Create product record
+      products_management:
+        method: 'POST'
+        route: 'add'
+        json_data: '{"title": "BMW Pencil", "price": 14, "discountPercentage": 8.04, "stock": 26, "brand": "School Items", "category": "groceries"}'
+      register: testout    
+    - name: test create product output
+      debug:
+        msg: '{{ testout }}' 
+
+    - name: Create product, wrong route
+      products_management:
+        method: 'POST'
+        route: 'products_wrong_route'
+        json_data: '{"title": "BMW Pencil", "price": 14, "discountPercentage": 8.04, "stock": 26, "brand": "School Items", "category": "groceries"}'
+      ignore_errors: true
+
+    - name: Create product record, missing required key
+      products_management:
+        method: 'POST'
+        route: 'add'
+        json_data: '{"missing_title": "missing title", "price": 14, "discountPercentage": 8.04, "stock": 26, "brand": "School Items", "category": "groceries"}'
+      ignore_errors: true 
+
+    - name: Create product record, missing  input_json
+      products_management:
+        method: 'POST'
+        route: 'add'
+      ignore_errors: true
+
+    - name: Create product record, extra key
+      products_management:
+        method: 'POST'
+        route: 'add'
+        json_data: '{"extra_key": "extra key", "title": "BMW Pencil", "price": 14, "discountPercentage": 8.04, "stock": 26, "brand": "School Items", "category": "groceries"}'
+      ignore_errors: true 
+
+    - name: Update product record
+      products_management:
+        method: 'PUT'
+        id: 1
+        json_data: '{"title": "BMW Pencil", "price": 14, "discountPercentage": 8.04, "stock": 26, "brand": "School Items", "category": "groceries"}'
+      register: testout    
+    - name: test update product output
+      debug:
+        msg: '{{ testout }}'
+
+    - name: Update product record, missing id
+      products_management:
+        method: 'PUT'
+        json_data: '{"extra_key": "extra key", "title": "BMW Pencil", "price": 14, "discountPercentage": 8.04, "stock": 26, "brand": "School Items", "category": "groceries"}'
+      ignore_errors: true
+
+
+    - name: Update product record, missing json_data
+      products_management:
+        method: 'PUT'
+        id: 1
+      ignore_errors: true
+    
+    - name: Delete employee record
+      products_management:
+        method: 'DELETE'
+        id: 1
+      register: testout    
+    - name: test delete employee output
+      debug:
+        msg: '{{ testout }}' 
+
+    - name: Delete product record, missing id
+      products_management:
+        method: 'DELETE'
+      ignore_errors: true
+

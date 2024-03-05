@@ -3,6 +3,12 @@
 # Copyright: (c) 2018, Terry Jones <terry.jones@example.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import (absolute_import, division, print_function)
+import json
+import http.client as http
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.my_http_utils import get_products, get_product_by_id, create_product, update_product, delete_product_by_id
+
+
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -121,103 +127,71 @@ status:
     sample: 200
 '''
 
-from ansible.module_utils.basic import AnsibleModule
-import http.client as http
-import json
-
 BASE_URL = 'dummyjson.com'
 
-REQUIRED_KEYS = ['title', 'price', 'discountPercentage', 'stock', 'brand', 'category']
-ALL_Keys = ['title', 'price', 'discountPercentage', 'stock', 'brand', 'category', 'thumbnail', 'description', 'images']
+REQUIRED_KEYS = ['title', 'price',
+                 'discountPercentage', 'stock', 'brand', 'category']
+ALL_Keys = ['title', 'price', 'discountPercentage', 'stock',
+            'brand', 'category', 'thumbnail', 'description', 'images']
 ROUTS = ['add']
 
-def run_module():
-    # define available arguments/parameters a user can pass to the module
-    module_args = dict(
-        route=dict(type='str', required=False),
-        method=dict(type='str', required=True),
+path = '/products'
+HEADERS = {'Content-type': 'application/json', 'Accept': '*/*'}
+
+
+def get_module_spec():
+    api_spec = dict(
+        route=dict(type='str', choices=['add'], required=False),
+        method=dict(type='str', choices=[
+                    'GET', 'POST', 'PUT', 'DELETE'], required=True),
         id=dict(type='int', required=False),
         json_data=dict(type='str', required=False)
     )
+    return api_spec
+
+
+def run_module():
 
     # seed the result dict in the object
     result = dict(
         changed=False,
         status='',
         reason='',
-        data = ''
+        data=''
     )
 
     # the AnsibleModule object will be our abstraction working with Ansible
     module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
+        argument_spec=get_module_spec(),
+        supports_check_mode=True,
+        required_if=[
+            ('method', 'POST', ('json_data', 'route')),
+            ('method', 'PUT', ('id', 'json_data', )),
+            ('method', 'DELETE', ('id',)),
+        ],
     )
 
-    conn = http.HTTPSConnection(BASE_URL)
     method = module.params['method']
     route = module.params['route']
     product_id = module.params['id']
     input_json = module.params['json_data']
+    try:
+        if method == 'GET' and product_id is None:
+            get_products(result)
 
-    path = '/products'  
-    headers = {'Content-type': 'application/json', 'Accept': '*/*'}
-    body = None
+        elif method == 'GET' and product_id is not None:
+            get_product_by_id(product_id, result)
 
-    if route is not None and route not in ROUTS:
-            module.fail_json(msg=f"Invalid route: {route} . Accepted routes are: {ROUTS}")
+        elif method == 'POST':
+            create_product(route, input_json, result)
 
+        elif method == 'PUT':
+            update_product(product_id, input_json, result)
 
-    if method == 'GET':
-        if product_id is not None :
-            path = f'{path}/{product_id}'
-    
-    elif method == 'POST':
-        if route != 'add':
-            module.fail_json(msg=f"Invalid route: {route} for post operation")
-        if input_json is  None :
-            module.fail_json(msg=f"input_json is required for create Product")
-        body = validat_and_return_request_body(module, input_json)
-        path = f'{path}/{route}'
-    
-    elif method == 'PUT':
-        if product_id is None :
-            module.fail_json(msg=f"Missing 'id' parameter for the route 'update'")
-        if input_json is  None :
-            module.fail_json(msg=f"input_json is required for Update Product")
-        
-        body = validat_and_return_request_body(module, input_json)
-        path = f'{path}/{product_id}'    
-    
-    elif method == 'DELETE':
-        if product_id is None :
-               module.fail_json(msg=f"Missing 'id' parameter for the route 'delete'")
-        path = f'{path}/{product_id}'
-    
-    else:
-        module.fail_json(msg=f"Unsupported method: {method}")
-        
-    if method == 'POST' or method == 'PUT':
-        conn.request(method, path, json.dumps(body), headers)
-    
-    else:
-        conn.request(method, path)
-    
-    response = conn.getresponse()
-    response_data = response.read().decode()
-
-    if response.status >= 200 and response.status <= 299:
-        result['changed'] = True
-        response_data = json.loads(response_data)
-    else: 
-        module.fail_json(msg=f'The request fail with reson: {response.reason} and status : {response.status}',)
-    
-
-    result['status'] = response.status
-    result['reason'] = response.reason
-    result['data'] = response_data
-    conn.close()
-
+        elif method == 'DELETE':
+            delete_product_by_id(product_id, result)
+    except Exception as e:
+        module.fail_json(msg=str(e))
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current
@@ -230,28 +204,9 @@ def run_module():
     module.exit_json(**result)
 
 
-def validat_and_return_request_body(module, body) :
-    try:
-        json_data= json.loads(body)
-    except json.JSONDecodeError as e:
-        module.fail_json(msg=f'fail to parse "json_data" : {str(e)}')
-
-    missing_keys = [key for key in REQUIRED_KEYS if key not in json_data]
-
-    if missing_keys:
-        module.fail_json(msg=f"Missing Required Keys in 'json_data' : {', '.join(missing_keys)}")
-
-    extra_keys = [key for key in json_data if key not in ALL_Keys]
-
-    if extra_keys:
-        module.fail_json(msg=f"Unexpected Keys in 'json_data' : {', '.join(extra_keys)} The keys should be in: {ALL_Keys}")
-    
-    return json_data
-
 def main():
     run_module()
 
 
 if __name__ == '__main__':
     main()
-
