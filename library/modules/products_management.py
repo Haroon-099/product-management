@@ -3,7 +3,6 @@
 # Copyright: (c) 2018, Terry Jones <terry.jones@example.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import (absolute_import, division, print_function)
-import json
 import http.client as http
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.my_http_utils import get_products, get_product_by_id, create_product, update_product, delete_product_by_id
@@ -129,14 +128,37 @@ status:
 
 
 def get_module_spec():
-    api_spec = dict(
+    module_args = dict(
         route=dict(type='str', choices=['add'], required=False),
         method=dict(type='str', choices=[
                     'GET', 'POST', 'PUT', 'DELETE'], required=True),
         id=dict(type='int', required=False),
         json_data=dict(type='str', required=False)
     )
-    return api_spec
+    return module_args
+
+
+def build_spec(params):
+    spec = {
+        'method': None,
+        'route': None,
+        'id': None,
+        'json_data': None
+    }
+
+    for key in spec.copy().keys():
+        if params.get(key):
+            spec[key] = params[key]
+        else:
+            spec.pop(key)
+
+    return spec
+
+
+def post_product(module, result):
+    spec = build_spec(module.params)
+    return create_product(spec)
+
 
 
 def run_module():
@@ -144,9 +166,8 @@ def run_module():
     # seed the result dict in the object
     result = dict(
         changed=False,
-        status='',
-        reason='',
-        data=''
+        response='',
+        error=''
     )
 
     # the AnsibleModule object will be our abstraction working with Ansible
@@ -164,24 +185,43 @@ def run_module():
     route = module.params['route']
     product_id = module.params['id']
     input_json = module.params['json_data']
-
+    response = None
+    params = build_spec(module.params)
     try:
         if method == 'GET' and product_id is None:
-            get_products(result)
+            response = get_products(params)
+            if 'error' in response: 
+                module.fail_json(msg="Failed Getting All products: ",**response)
 
         elif method == 'GET' and product_id is not None:
-            get_product_by_id(product_id, result)
+            response = get_product_by_id(params)
+            if 'error' in response: 
+                module.fail_json(msg="Failed Getting All products: ",**response)
+
 
         elif method == 'POST':
-            create_product(route, input_json, result)
+            response =  post_product(module, result)
+            if 'error' in response: 
+                module.fail_json(msg="Failed Getting All products: ",**response)
+
 
         elif method == 'PUT':
-            update_product(product_id, input_json, result)
+            response = update_product(params)
+            if 'error' in response: 
+                module.fail_json(msg="Failed Getting All products: ",**response)
+
 
         elif method == 'DELETE':
-            delete_product_by_id(product_id, result)
+            response = delete_product_by_id(params)
+            if 'error' in response: 
+                module.fail_json(msg="Failed Getting All products: ",**response)
+
     except Exception as e:
-        module.fail_json(msg=str(e))
+        module.fail_json(msg=f"Failed In Product Management Module : {e}")
+        
+    result['response'] = response
+        
+    
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current
