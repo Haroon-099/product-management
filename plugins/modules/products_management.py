@@ -5,7 +5,7 @@
 from __future__ import (absolute_import, division, print_function)
 import http.client as http
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.my_http_utils import get_products, get_product_by_id, create_product, update_product, delete_product_by_id
+from ansible.module_utils.my_http_utils import create_product, update_product, delete_product_by_id
 
 
 __metaclass__ = type
@@ -182,24 +182,12 @@ def run_module():
     )
 
     method = module.params['method']
-    route = module.params['route']
     product_id = module.params['id']
-    input_json = module.params['json_data']
     response = None
     params = build_spec(module.params)
     try:
-        if method == 'GET' and product_id is None:
-            response = get_products(params)
-            if 'error' in response: 
-                module.fail_json(msg="Failed Getting All products: ",**response)
-
-        elif method == 'GET' and product_id is not None:
-            response = get_product_by_id(params)
-            if 'error' in response: 
-                module.fail_json(msg="Failed Getting All products: ",**response)
-
-
-        elif method == 'POST':
+        # implement integration test 
+        if method == 'POST':
             response =  post_product(module, result)
             if 'error' in response: 
                 module.fail_json(msg="Failed Getting All products: ",**response)

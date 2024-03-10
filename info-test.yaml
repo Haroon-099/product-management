@@ -1,0 +1,32 @@
+---
+- name: test my new module
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: GET all products
+      products_management_info:
+        method: 'GET'
+      register: testout
+    - name: test all products output
+      debug:
+        msg: '{{ testout }}'
+
+    - name: GET single product
+      products_management_info:
+        method: 'GET'
+        id: 23
+      register: testout    
+    - name: test single product output
+      debug:
+        msg: '{{ testout }}'
+
+    - name: GET single product, wrong id
+      products_management_info:
+        method: 'GET'
+        id: 'WRONG_ID'
+      ignore_errors: true   
+
+    - name: GET single product, messing required parameter 
+      products_management_info:
+        id: 'WRONG_ID'
+      ignore_errors: true  
