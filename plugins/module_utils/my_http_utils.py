@@ -43,7 +43,7 @@ def validat_request_body(body):
     except json.JSONDecodeError as e:
         resp = f'fail to parse "json_data" : {str(e)}'
     except Exception as e:
-        resp= f'fail to validate "json_data" : {str(e)}'
+        resp = f'fail to validate "json_data" : {str(e)}'
 
     missing_keys = [key for key in REQUIRED_KEYS if key not in json_data]
 

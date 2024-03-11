@@ -5,7 +5,7 @@
 from __future__ import (absolute_import, division, print_function)
 import http.client as http
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.my_http_utils import get_products, get_product_by_id
+from ..module_utils.my_http_utils import get_products, get_product_by_id
 
 
 __metaclass__ = type
