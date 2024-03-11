@@ -1,0 +1,3 @@
+---
+- block:
+    - import_tasks: "products_managment_operations.yml"

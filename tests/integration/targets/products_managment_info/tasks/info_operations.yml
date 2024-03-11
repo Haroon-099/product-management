@@ -1,27 +1,67 @@
 - name: GET all products
   products_management_info:
     method: 'GET'
-  register: testout
-- name: test all products output
-  debug:
-    msg: '{{ testout }}'
+  register: result
+
+- name: GET All Products Status
+  assert:
+    that:
+      - result.failed == false
+      - result.changed == false 
+      - result.response is defined
+      - result.response.reason == 'OK'
+      - result.response.status == 200
+      - result.response.data is defined
+      - result.response.data.products is defined and (result.response.data.products | type_debug == "list")
+    fail_msg: 'Unable to GET All Products'
+    success_msg: 'All Products retrived successfully'
+
 
 - name: GET single product
   products_management_info:
     method: 'GET'
     id: 23
-  register: testout    
-- name: test single product output
-  debug:
-    msg: '{{ testout }}'
+  register: result    
+
+- name: GET Single Products Status
+  assert:
+    that:
+      - result.failed == false
+      - result.changed == false 
+      - result.response is defined
+      - result.response.reason == 'OK'
+      - result.response.status == 200
+      - result.response.data is defined and (result.response.data | type_debug == "dict")
+    fail_msg: 'Fail to GET All Products'
+    success_msg: 'All Products retrived successfully'
 
 - name: GET single product, wrong id
   products_management_info:
     method: 'GET'
     id: 'WRONG_ID'
   ignore_errors: true   
+  register: result  
+
+- name: GET Single Products, wrong id Status
+  assert:
+    that:
+      - result.failed == true
+      - result.changed == false 
+      - result.response is not defined
+    fail_msg: 'Failed, GET Product successfully with wrong ID'
+    success_msg: ' Success: returned error as expected '
 
 - name: GET single product, messing required parameter 
   products_management_info:
     id: 'WRONG_ID'
-  ignore_errors: true  
+  ignore_errors: true
+  register: result    
+
+- name: GET Single Products, messing required parameter Status
+  assert:
+    that:
+      - result.failed == true
+      - result.changed == false 
+      - result.response is not defined
+    fail_msg: 'Failed, GET Product successfully with missing required parameter method'
+    success_msg: ' Success: returned error as expected '

@@ -5,7 +5,7 @@
 from __future__ import (absolute_import, division, print_function)
 import http.client as http
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.my_http_utils import create_product, update_product, delete_product_by_id
+from ..module_utils.my_http_utils import create_product, update_product, delete_product_by_id
 
 
 __metaclass__ = type
@@ -208,6 +208,7 @@ def run_module():
         module.fail_json(msg=f"Failed In Product Management Module : {e}")
         
     result['response'] = response
+    result["changed"] = True
         
     
 

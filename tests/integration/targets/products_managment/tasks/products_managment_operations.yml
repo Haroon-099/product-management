@@ -1,0 +1,150 @@
+- name: Assign json Data Object
+  set_fact:
+    json_data: 
+      title: "BMW Pencil"
+      price: 14
+      discountPercentage: 8.04
+      stock: 26
+      brand: "School Items"
+      category: "groceries"
+
+    json_data_missing_title: 
+      price: 14
+      discountPercentage: 8.04
+      stock: 26
+      brand: "School Items"
+      category: "groceries"
+
+    json_data_extra_key: 
+      extra_key: "extra key"
+      title: "BMW Pencil"
+      price: 14
+      discountPercentage: 8.04
+      stock: 26
+      brand: "School Items"
+      category: "groceries"
+
+    json_data_for_PUT: 
+      title: "BMW Pencil"
+      price: 24
+      discountPercentage: 8.04
+      stock: 26
+      brand: "School Items"
+      category: "groceries"
+    
+- name: Create product record
+  products_management:
+    method: 'POST'
+    route: 'add'
+    json_data: '{{json_data | to_json}}'
+  register: result    
+
+- name: Create Products Status
+  assert:
+    that:
+      - result.failed == false
+      - result.changed == true 
+      - result.response is defined
+      - result.response.reason == 'OK'
+      - result.response.status == 200
+      - result.response.data is defined and (result.response.data | type_debug == "dict")
+      - result.response.data.title == json_data.title
+      - result.response.data.brand == json_data.brand
+      - result.response.data.category == json_data.category
+      - result.response.data.price == json_data.price
+      - result.response.data.stock == json_data.stock
+    fail_msg: 'Unable to Create Product'
+    success_msg: 'Product created successfully'
+
+- name: Create product record, missing required key
+  products_management:
+    method: 'POST'
+    route: 'add'
+    json_data: '{{json_data_missing_title | to_json}}'
+  ignore_errors: true
+  register: result    
+
+- name: Create product record, missing required key Status
+  assert:
+    that:
+      - result.failed == true
+      - result.changed == false 
+      - result.response is not defined
+    fail_msg: 'Failed, Product created successfully with missing required key '
+    success_msg: ' Success: returned error as expected '
+
+- name: Create product record, missing  input_json
+  products_management:
+    method: 'POST'
+    route: 'add'
+  ignore_errors: true
+  register: result
+
+- name: Create product record,  missing  input_json
+  assert:
+    that:
+      - result.failed == true
+      - result.changed == false 
+      - result.response is not defined
+    fail_msg: 'Failed, Product created successfully with missing input_json '
+    success_msg: ' Success: returned error as expected '
+
+- name: Create product record, extra key
+  products_management:
+    method: 'POST'
+    route: 'add'
+    json_data: '{{json_data_extra_key | to_json}}'
+  ignore_errors: true
+  register: result
+
+- name: Create product record,  missing  input_json
+  assert:
+    that:
+      - result.failed == true
+      - result.changed == false 
+      - result.response is not defined
+    fail_msg: 'Failed, Product created successfully with extra key '
+    success_msg: ' Success: returned error as expected '
+
+- name: Update product record
+  products_management:
+    method: 'PUT'
+    id: 1
+    json_data: '{{json_data_for_PUT | to_json}}'
+  register: result    
+
+- name: Update Products Status
+  assert:
+    that:
+      - result.failed == false
+      - result.changed == true 
+      - result.response is defined
+      - result.response.reason == 'OK'
+      - result.response.status == 200
+      - result.response.data is defined and (result.response.data | type_debug == "dict")
+      - result.response.data.title == json_data_for_PUT.title
+      - result.response.data.brand == json_data_for_PUT.brand
+      - result.response.data.category == json_data_for_PUT.category
+      - result.response.data.price == json_data_for_PUT.price
+      - result.response.data.stock == json_data_for_PUT.stock
+    fail_msg: 'Unable to Update Product'
+    success_msg: 'Product updated successfully'
+
+- name: Delete employee record
+  products_management:
+    method: 'DELETE'
+    id: 1
+  register: result    
+
+- name: Delete Products Status
+  assert:
+    that:
+      - result.failed == false
+      - result.changed == true 
+      - result.response is defined
+      - result.response.reason == 'OK'
+      - result.response.status == 200
+      - result.response.data is defined and (result.response.data | type_debug == "dict")
+      - result.response.data.id == 1
+    fail_msg: 'Unable to Delete Product'
+    success_msg: 'Product deleted successfully'
